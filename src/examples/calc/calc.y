@@ -1,32 +1,37 @@
-/* reverse polish notation calculator */
+/* infix notation calculator */
 
 %{
-  #define YYSTYPE double
-  #include <math.h>
-  #include <stdio.h>
-  int yylex (void);
-  void yyerror (const char *);
+   #define YYSTYPE double
+   #include <math.h>
+   #include <stdio.h>
+   int yylex(void);
+   void yyerror (const char *); 
 %}
 
-
+/* Bison declarations */
 %token NUM
+%left '-' '+'
+%left '*' '/'
+%left NEG 				/* negation -- unary units */
+%right '^'				/* exponentiation */
 
-%% /* grammar rules and actions follow */
-input: 	/* empty */
-				| input line
+%%  /* the grammar follows */
+input:			/* empty */
+						| input line
 ;
-line:	'\n'
-				| exp '\n'	{ printf ("\t%.10g\n", $1); }
+
+line:				'\n'
+						| exp '\n' { printf ("\t%.10g\n", $1); }
 ;
-exp:		NUM						{ $$ = $1;			 		}
-				| exp exp '+'	{ $$ = $1 + $2;			}
-				| exp exp '-'	{ $$ = $1 - $2;			}
-				| exp exp '*'	{ $$ = $1 * $2;			}
-				| exp exp '/'	{ $$ = $1 / $2;			}
-				/* exponentiation */
-				| exp exp '^'	{ $$ = pow ($1, $2); }
-				/* unary minus */
-				| exp 'n'			{ $$ = -$1; 				}
+
+exp: 				NUM			 					{  $$ = $1; }
+						| exp '+' exp				{  $$ = $1 + $3; }
+						| exp '-' exp				{  $$ = $1 - $3; }
+						| exp '*' exp				{  $$ = $1 * $3; }
+						| exp '/' exp				{  $$ = $1 / $3; }
+						| '-' exp %prec NEG	{  $$ = -$2; } 
+						| exp '^' exp				{  $$ = pow ($1, $3); }
+						| '(' exp ')'				{  $$ = $2; }
 ;
 %%
 /* The lexical analyzer returns a double floating point 
